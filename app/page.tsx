@@ -1,18 +1,71 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Hero from "@/components/hero"
+import Dashboard from "@/components/dashboard"
+import LoadingScreen from "@/components/loading-screen"
+import VerifyView from "@/components/verify-view"
+import { useWallet } from "@/hooks/use-wallet"
+import { useUser } from "@/hooks/use-user"
 
 export default function Home() {
-  const [showHero, setShowHero] = useState(false)
+  const [currentView, setCurrentView] = useState<'landing' | 'loading' | 'hero' | 'dashboard' | 'verify'>('landing')
+  const { isConnected, account, connectWallet, disconnectWallet, isLoading: walletLoading } = useWallet()
+  const { user, isLoading: userLoading, checkUserExists, setUser } = useUser()
 
-  if (showHero) {
+  const handleFindSoulz = async () => {
+    if (!isConnected) {
+      alert('Please connect your wallet first!')
+      return
+    }
+
+    setCurrentView('loading')
+    
+    try {
+      const userExists = await checkUserExists(account!)
+      if (userExists) {
+        setCurrentView('dashboard')
+      } else {
+        setCurrentView('verify')
+      }
+    } catch (error) {
+      console.error('Error checking user:', error)
+      setCurrentView('landing')
+    }
+  }
+
+  const handleLogout = () => {
+    disconnectWallet()
+    setUser(null)
+    setCurrentView('landing')
+  }
+
+  // Redirect to landing if wallet disconnected
+  useEffect(() => {
+    if (!isConnected && currentView !== 'landing') {
+      setCurrentView('landing')
+    }
+  }, [isConnected, currentView])
+
+  if (currentView === 'loading') {
+    return <LoadingScreen />
+  }
+
+  if (currentView === 'hero') {
     return (
       <main className="relative w-full min-h-screen overflow-hidden bg-background">
         <Hero />
       </main>
     )
+  }
+
+  if (currentView === 'verify') {
+    return <VerifyView onComplete={() => setCurrentView('dashboard')} />
+  }
+
+  if (currentView === 'dashboard' && user) {
+    return <Dashboard user={user} onLogout={handleLogout} />
   }
 
   return (
@@ -24,8 +77,12 @@ export default function Home() {
             <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full" />
             <span className="text-2xl font-bold text-white">Soulz</span>
           </div>
-          <button className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full hover:shadow-lg transition-all duration-300">
-            Connect Wallet
+          <button 
+            onClick={connectWallet}
+            disabled={walletLoading}
+            className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-full hover:shadow-lg transition-all duration-300 disabled:opacity-50"
+          >
+            {walletLoading ? 'Connecting...' : isConnected ? `${account?.slice(0, 6)}...${account?.slice(-4)}` : 'Connect Wallet'}
           </button>
         </div>
       </header>
@@ -52,8 +109,9 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            onClick={() => setShowHero(true)}
-            className="px-8 cursor-pointer py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all duration-300 text-lg"
+            onClick={handleFindSoulz}
+            disabled={!isConnected}
+            className="px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Find Soulz
           </motion.button>
@@ -167,8 +225,9 @@ export default function Home() {
           <p className="text-xl text-gray-300 mb-8">Join thousands who have discovered meaningful AI relationships</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              onClick={() => setShowHero(true)}
-              className="px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all duration-300"
+              onClick={handleFindSoulz}
+              disabled={!isConnected}
+              className="px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Start Your Journey
             </button>

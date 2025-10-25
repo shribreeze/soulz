@@ -1,32 +1,23 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
 import { useWallet } from "@/hooks/use-wallet"
 import { useUser } from "@/hooks/use-user"
 
-export default function VerifyPage() {
-  const [step, setStep] = useState(1)
+interface VerifyViewProps {
+  onComplete: () => void
+}
+
+export default function VerifyView({ onComplete }: VerifyViewProps) {
   const [formData, setFormData] = useState({
     name: "",
     age: "",
     bio: ""
   })
   const [isVerifying, setIsVerifying] = useState(false)
-  const router = useRouter()
-  const { isConnected, account } = useWallet()
+  const { account } = useWallet()
   const { createUser } = useUser()
-
-  useEffect(() => {
-    if (!isConnected) {
-      router.push("/")
-    }
-  }, [isConnected, router])
-
-  if (!isConnected) {
-    return null
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,11 +30,8 @@ export default function VerifyPage() {
         bio: formData.bio
       })
       
-      // Simulate verification process
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      
-      // Redirect to dashboard
-      router.push("/")
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      onComplete()
     } catch (error) {
       console.error("Verification failed:", error)
     } finally {
@@ -126,15 +114,6 @@ export default function VerifyPage() {
               Verify My Soul
             </button>
           </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => router.push("/")}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              Back to Home
-            </button>
-          </div>
         </motion.div>
       </div>
     </div>
