@@ -6,25 +6,31 @@ import { useWallet } from "@/hooks/use-wallet"
 import { useUser } from "@/hooks/use-user"
 
 interface VerifyViewProps {
+  account: string | null
   onComplete: () => void
 }
 
-export default function VerifyView({ onComplete }: VerifyViewProps) {
+export default function VerifyView({ account, onComplete }: VerifyViewProps) {
   const [formData, setFormData] = useState({
     name: "",
     age: "",
     bio: ""
   })
   const [isVerifying, setIsVerifying] = useState(false)
-  const { account } = useWallet()
   const { createUser } = useUser()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!account) {
+      console.error('No wallet connected')
+      return
+    }
+    
     setIsVerifying(true)
     
     try {
-      await createUser(account!, {
+      await createUser(account, {
         name: formData.name,
         age: parseInt(formData.age),
         bio: formData.bio

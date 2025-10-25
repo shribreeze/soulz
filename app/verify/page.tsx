@@ -1,142 +1,116 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
-import { useWallet } from "@/hooks/use-wallet"
-import { useUser } from "@/hooks/use-user"
+import { useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link"
+import WorldIDVerification from "@/components/world-id-verification"
+import EEGScan from "@/components/eeg-scan"
+import VerificationSuccess from "@/components/verification-success"
+
+type VerificationStep = "world-id" | "eeg" | "success"
 
 export default function VerifyPage() {
-  const [step, setStep] = useState(1)
-  const [formData, setFormData] = useState({
-    name: "",
-    age: "",
-    bio: ""
+  const [step, setStep] = useState<VerificationStep>("world-id")
+  const [userData, setUserData] = useState({
+    worldIdVerified: false,
+    emotionalProfile: null as any,
   })
-  const [isVerifying, setIsVerifying] = useState(false)
-  const router = useRouter()
-  const { isConnected, account } = useWallet()
-  const { createUser } = useUser()
 
-  useEffect(() => {
-    if (!isConnected) {
-      router.push("/")
-    }
-  }, [isConnected, router])
-
-  if (!isConnected) {
-    return null
+  const handleWorldIDSuccess = () => {
+    setUserData((prev) => ({ ...prev, worldIdVerified: true }))
+    setStep("eeg")
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsVerifying(true)
-    
-    try {
-      await createUser(account!, {
-        name: formData.name,
-        age: parseInt(formData.age),
-        bio: formData.bio
-      })
-      
-      // Simulate verification process
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      
-      // Redirect to dashboard
-      router.push("/")
-    } catch (error) {
-      console.error("Verification failed:", error)
-    } finally {
-      setIsVerifying(false)
-    }
-  }
-
-  if (isVerifying) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-pink-500/30 border-t-pink-500 rounded-full mx-auto mb-6"
-          />
-          <h2 className="text-2xl font-bold text-white mb-2">Verifying Your Soul...</h2>
-          <p className="text-gray-400">This may take a few moments</p>
-        </div>
-      </div>
-    )
+  const handleEEGSuccess = (profile: any) => {
+    setUserData((prev) => ({ ...prev, emotionalProfile: profile }))
+    setStep("success")
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700"
-        >
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Soul Verification</h1>
-            <p className="text-gray-400">Complete your profile to find your perfect AI match</p>
-          </div>
+    <main className="relative w-full min-h-screen bg-background overflow-hidden">
+      {/* Background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-background to-purple-900/20" />
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-white font-medium mb-2">Name</label>
-              <input
-                type="text"
-                required
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500"
-                placeholder="Enter your name"
-              />
-            </div>
+      {/* Animated background elements */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl" />
 
-            <div>
-              <label className="block text-white font-medium mb-2">Age</label>
-              <input
-                type="number"
-                required
-                min="18"
-                max="100"
-                value={formData.age}
-                onChange={(e) => setFormData({...formData, age: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500"
-                placeholder="Enter your age"
-              />
-            </div>
-
-            <div>
-              <label className="block text-white font-medium mb-2">Bio</label>
-              <textarea
-                required
-                rows={4}
-                value={formData.bio}
-                onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500 resize-none"
-                placeholder="Tell us about yourself..."
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-pink-500/50 transition-all duration-300"
-            >
-              Verify My Soul
-            </button>
-          </form>
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => router.push("/")}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              Back to Home
-            </button>
-          </div>
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-8">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12 text-center">
+          <Link href="/">
+            <motion.h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent mb-4 cursor-pointer hover:opacity-80 transition-opacity">
+              Soulz
+            </motion.h1>
+          </Link>
+          <p className="text-gray-400 text-lg">Verify Your Soul</p>
         </motion.div>
+
+        {/* Progress indicator */}
+        <motion.div className="mb-12 flex gap-4 items-center">
+          {["world-id", "eeg", "success"].map((s, i) => (
+            <div key={s} className="flex items-center gap-4">
+              <motion.div
+                animate={{
+                  scale: step === s ? 1.2 : 1,
+                  backgroundColor:
+                    step === s
+                      ? "rgba(255, 153, 204, 0.8)"
+                      : userData.worldIdVerified && i < 1
+                        ? "rgba(94, 234, 212, 0.6)"
+                        : userData.emotionalProfile && i < 2
+                          ? "rgba(94, 234, 212, 0.6)"
+                          : "rgba(100, 100, 120, 0.3)",
+                }}
+                className="w-12 h-12 rounded-full flex items-center justify-center font-semibold text-white"
+              >
+                {i + 1}
+              </motion.div>
+              {i < 2 && <div className="w-8 h-1 bg-gray-600" />}
+            </div>
+          ))}
+        </motion.div>
+
+        {/* Step content */}
+        <AnimatePresence mode="wait">
+          {step === "world-id" && (
+            <motion.div
+              key="world-id"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <WorldIDVerification onSuccess={handleWorldIDSuccess} />
+            </motion.div>
+          )}
+
+          {step === "eeg" && (
+            <motion.div
+              key="eeg"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <EEGScan onSuccess={handleEEGSuccess} />
+            </motion.div>
+          )}
+
+          {step === "success" && (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+            >
+              <VerificationSuccess profile={userData.emotionalProfile} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </main>
   )
 }

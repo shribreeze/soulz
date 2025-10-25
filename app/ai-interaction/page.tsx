@@ -3,31 +3,61 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useWallet } from "@/hooks/use-wallet"
+
 import AIConversationVisual from "@/components/ai-conversation-visual"
 import CompatibilityBar from "@/components/compatibility-bar"
 
 export default function AIInteractionPage() {
-  const [compatibility, setCompatibility] = useState(0)
+  const [isConnecting, setIsConnecting] = useState(true)
   const [isConversing, setIsConversing] = useState(true)
   const [matchFound, setMatchFound] = useState(false)
+  const [compatibility, setCompatibility] = useState({
+    overall: 0,
+    emotional: 0,
+    values: 0,
+    chemistry: 0,
+  })
 
+  const router = useRouter()
+  const { isConnected } = useWallet()
+
+  // --- Mock AI Interaction Process ---
   useEffect(() => {
-    if (!isConversing) return
-
-    const interval = setInterval(() => {
-      setCompatibility((prev) => {
-        const newValue = prev + Math.random() * 8
-        if (newValue >= 100) {
-          setIsConversing(false)
-          setMatchFound(true)
-          return 100
-        }
-        return newValue
+    // Step 1: simulate connection/analysis delay
+    const timer1 = setTimeout(() => {
+      setCompatibility({
+        overall: 94,
+        emotional: 91,
+        values: 88,
+        chemistry: 96,
       })
-    }, 500)
+      setIsConnecting(false)
+    }, 3000)
 
-    return () => clearInterval(interval)
-  }, [isConversing])
+    // Step 2: after some time, conversation ends & match found
+    const timer2 = setTimeout(() => {
+      setIsConversing(false)
+      setMatchFound(true)
+    }, 5000)
+
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+    }
+  }, [])
+
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-pink-500/30 border-t-pink-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <main className="relative w-full min-h-screen bg-background overflow-hidden">
@@ -77,7 +107,9 @@ export default function AIInteractionPage() {
           className="text-center mb-12"
         >
           {isConversing && (
-            <p className="text-cyan-400 font-semibold">Analyzing emotional alignment and compatibility patterns...</p>
+            <p className="text-cyan-400 font-semibold">
+              Analyzing emotional alignment and compatibility patterns...
+            </p>
           )}
           {matchFound && (
             <motion.p
@@ -106,9 +138,33 @@ export default function AIInteractionPage() {
                 Meet Your Match
               </motion.button>
             </Link>
+
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                // restart AI conversation process
+                setIsConnecting(true)
+                setIsConversing(true)
+                setMatchFound(false)
+                setCompatibility({ overall: 0, emotional: 0, values: 0, chemistry: 0 })
+
+                // rerun mock process
+                setTimeout(() => {
+                  setCompatibility({
+                    overall: 94,
+                    emotional: 91,
+                    values: 88,
+                    chemistry: 96,
+                  })
+                  setIsConnecting(false)
+                }, 3000)
+
+                setTimeout(() => {
+                  setIsConversing(false)
+                  setMatchFound(true)
+                }, 5000)
+              }}
               className="px-8 py-4 border-2 border-cyan-400 text-cyan-400 font-semibold rounded-full hover:bg-cyan-400/10 transition-all"
             >
               Let AIs Talk More

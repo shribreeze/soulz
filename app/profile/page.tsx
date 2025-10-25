@@ -3,6 +3,9 @@
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useWallet } from "@/hooks/use-wallet"
+import { useUser } from "@/hooks/use-user"
 import AvatarSelector from "@/components/avatar-selector"
 import TraitsInput from "@/components/traits-input"
 import PersonalityHologram from "@/components/personality-hologram"
@@ -13,38 +16,50 @@ export default function ProfilePage() {
   const [vibes, setVibes] = useState<string[]>([])
   const [step, setStep] = useState<"avatar" | "traits" | "review">("avatar")
 
-  const handleAddTrait = (trait: string) => {
-    if (trait && !traits.includes(trait)) {
-      setTraits([...traits, trait])
+  const router = useRouter()
+  const { isConnected, account } = useWallet()
+  const { createUser } = useUser()
+
+  const handleAdd = (value: string, setter: any, list: string[]) => {
+    if (value && !list.includes(value) && list.length < 5) setter([...list, value])
+  }
+
+  const handleRemove = (value: string, setter: any, list: string[]) => {
+    setter(list.filter((i: string) => i !== value))
+  }
+
+  const handleFinish = async () => {
+    if (!account) return
+    try {
+      await createUser(account, {
+        name: `Soul_${account.slice(-6)}`,
+        age: Math.floor(Math.random() * 30) + 20,
+        bio: `${selectedAvatar} soul with traits: ${traits.join(", ")} and vibes: ${vibes.join(", ")}`
+      })
+      router.push("/ai-interaction")
+    } catch (error) {
+      console.error("Error saving profile:", error)
+      router.push("/ai-interaction")
     }
   }
 
-  const handleRemoveTrait = (trait: string) => {
-    setTraits(traits.filter((t) => t !== trait))
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-pink-500/30 border-t-pink-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Connecting Wallet...</p>
+        </div>
+      </div>
+    )
   }
-
-  const handleAddVibe = (vibe: string) => {
-    if (vibe && !vibes.includes(vibe)) {
-      setVibes([...vibes, vibe])
-    }
-  }
-
-  const handleRemoveVibe = (vibe: string) => {
-    setVibes(vibes.filter((v) => v !== vibe))
-  }
-
-  const isComplete = selectedAvatar && traits.length > 0 && vibes.length > 0
 
   return (
-    <main className="relative w-full min-h-screen bg-background overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-background to-pink-900/20" />
-
-      {/* Animated background elements */}
+    <main className="relative w-full min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 overflow-hidden">
+      {/* Background orbs */}
       <div className="absolute top-0 left-1/3 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/3 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
 
-      {/* Content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 py-8">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12 text-center">
@@ -56,7 +71,7 @@ export default function ProfilePage() {
           <p className="text-gray-400 text-lg">Create Your AI Companion</p>
         </motion.div>
 
-        {/* Progress steps */}
+        {/* Step indicators */}
         <motion.div className="mb-12 flex gap-4 items-center">
           {["avatar", "traits", "review"].map((s, i) => (
             <div key={s} className="flex items-center gap-4">
@@ -79,10 +94,10 @@ export default function ProfilePage() {
           ))}
         </motion.div>
 
-        {/* Main content */}
+        {/* Animated step transitions */}
         <AnimatePresence mode="wait">
           {step === "avatar" && (
-            <motion.div
+            <motion.section
               key="avatar"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -90,10 +105,8 @@ export default function ProfilePage() {
               transition={{ duration: 0.5 }}
               className="w-full max-w-2xl"
             >
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Choose Your AI Avatar</h2>
-                <p className="text-gray-400">Select the visual representation of your AI companion</p>
-              </div>
+              <h2 className="text-2xl font-bold text-white mb-2 text-center">Choose Your AI Avatar</h2>
+              <p className="text-gray-400 text-center mb-8">Select the visual representation of your AI companion</p>
               <AvatarSelector selected={selectedAvatar} onSelect={setSelectedAvatar} />
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -102,13 +115,13 @@ export default function ProfilePage() {
                 disabled={!selectedAvatar}
                 className="w-full mt-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Continue to Traits
+                Continue
               </motion.button>
-            </motion.div>
+            </motion.section>
           )}
 
           {step === "traits" && (
-            <motion.div
+            <motion.section
               key="traits"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -116,27 +129,25 @@ export default function ProfilePage() {
               transition={{ duration: 0.5 }}
               className="w-full max-w-2xl"
             >
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Define Your Personality</h2>
-                <p className="text-gray-400">Add traits and vibes that define your AI companion</p>
-              </div>
+              <h2 className="text-2xl font-bold text-white mb-2 text-center">Define Your Personality</h2>
+              <p className="text-gray-400 text-center mb-8">Add traits and vibes that define your AI companion</p>
 
               <div className="grid md:grid-cols-2 gap-8 mb-8">
                 <TraitsInput
                   title="Traits"
-                  placeholder="e.g., Witty, Empathetic, Creative"
+                  placeholder="e.g., Empathetic, Witty"
                   items={traits}
-                  onAdd={handleAddTrait}
-                  onRemove={handleRemoveTrait}
-                  suggestions={["Witty", "Empathetic", "Creative", "Adventurous", "Thoughtful", "Playful"]}
+                  onAdd={(t) => handleAdd(t, setTraits, traits)}
+                  onRemove={(t) => handleRemove(t, setTraits, traits)}
+                  suggestions={["Empathetic", "Creative", "Adventurous", "Calm", "Witty", "Mysterious"]}
                 />
                 <TraitsInput
                   title="Favorite Vibes"
-                  placeholder="e.g., Cosmic, Romantic, Mysterious"
+                  placeholder="e.g., Cosmic, Dreamy"
                   items={vibes}
-                  onAdd={handleAddVibe}
-                  onRemove={handleRemoveVibe}
-                  suggestions={["Cosmic", "Romantic", "Mysterious", "Ethereal", "Futuristic", "Dreamy"]}
+                  onAdd={(v) => handleAdd(v, setVibes, vibes)}
+                  onRemove={(v) => handleRemove(v, setVibes, vibes)}
+                  suggestions={["Cosmic", "Ethereal", "Dreamy", "Bold", "Gentle", "Zen", "Electric"]}
                 />
               </div>
 
@@ -145,7 +156,7 @@ export default function ProfilePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setStep("avatar")}
-                  className="flex-1 py-4 border-2 border-purple-500/50 text-purple-400 font-semibold rounded-full hover:bg-purple-500/10 transition-all"
+                  className="flex-1 py-4 border border-gray-600 text-gray-300 font-semibold rounded-full hover:bg-gray-700 transition-all"
                 >
                   Back
                 </motion.button>
@@ -156,14 +167,14 @@ export default function ProfilePage() {
                   disabled={traits.length === 0 || vibes.length === 0}
                   className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Review Profile
+                  Continue
                 </motion.button>
               </div>
-            </motion.div>
+            </motion.section>
           )}
 
           {step === "review" && (
-            <motion.div
+            <motion.section
               key="review"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -171,55 +182,37 @@ export default function ProfilePage() {
               transition={{ duration: 0.5 }}
               className="w-full max-w-2xl"
             >
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Your AI Companion</h2>
-                <p className="text-gray-400">Review your AI personality hologram</p>
-              </div>
+              <h2 className="text-2xl font-bold text-white mb-2 text-center">Your AI Companion</h2>
+              <p className="text-gray-400 text-center mb-8">Review your AI personality hologram</p>
 
               <div className="grid md:grid-cols-2 gap-8 items-center mb-8">
-                {/* Hologram */}
-                <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
-                  <PersonalityHologram avatar={selectedAvatar} traits={traits} vibes={vibes} />
-                </motion.div>
-
-                {/* Profile summary */}
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                  {/* Avatar display */}
+                <PersonalityHologram avatar={selectedAvatar} traits={traits} vibes={vibes} />
+                <div className="space-y-6">
                   <div className="bg-purple-900/30 rounded-lg p-6 border border-purple-500/30">
                     <p className="text-gray-400 text-sm mb-2">AI Avatar</p>
                     <p className="text-white font-semibold capitalize">{selectedAvatar}</p>
                   </div>
-
-                  {/* Traits */}
                   <div className="bg-purple-900/30 rounded-lg p-6 border border-purple-500/30">
                     <p className="text-gray-400 text-sm mb-3">Traits</p>
                     <div className="flex flex-wrap gap-2">
-                      {traits.map((trait) => (
-                        <span
-                          key={trait}
-                          className="px-3 py-1 bg-pink-500/20 border border-pink-500/50 rounded-full text-pink-400 text-sm"
-                        >
-                          {trait}
+                      {traits.map((t) => (
+                        <span key={t} className="px-3 py-1 bg-pink-500/20 text-pink-300 rounded-full text-sm">
+                          {t}
                         </span>
                       ))}
                     </div>
                   </div>
-
-                  {/* Vibes */}
                   <div className="bg-purple-900/30 rounded-lg p-6 border border-purple-500/30">
                     <p className="text-gray-400 text-sm mb-3">Vibes</p>
                     <div className="flex flex-wrap gap-2">
-                      {vibes.map((vibe) => (
-                        <span
-                          key={vibe}
-                          className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 rounded-full text-cyan-400 text-sm"
-                        >
-                          {vibe}
+                      {vibes.map((v) => (
+                        <span key={v} className="px-3 py-1 bg-cyan-500/20 text-cyan-300 rounded-full text-sm">
+                          {v}
                         </span>
                       ))}
                     </div>
                   </div>
-                </motion.div>
+                </div>
               </div>
 
               <div className="flex gap-4">
@@ -227,21 +220,20 @@ export default function ProfilePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setStep("traits")}
-                  className="flex-1 py-4 border-2 border-purple-500/50 text-purple-400 font-semibold rounded-full hover:bg-purple-500/10 transition-all"
+                  className="flex-1 py-4 border border-gray-600 text-gray-300 font-semibold rounded-full hover:bg-gray-700 transition-all"
                 >
                   Edit
                 </motion.button>
-                <Link href="/ai-interaction" className="flex-1">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all"
-                  >
-                    Meet Your Match
-                  </motion.button>
-                </Link>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleFinish}
+                  className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all"
+                >
+                  Meet Your Match
+                </motion.button>
               </div>
-            </motion.div>
+            </motion.section>
           )}
         </AnimatePresence>
       </div>

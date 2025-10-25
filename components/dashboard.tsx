@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { User } from "@/hooks/use-user"
 
@@ -12,6 +12,33 @@ interface DashboardProps {
 export default function Dashboard({ user, onLogout }: DashboardProps) {
   const [activeTab, setActiveTab] = useState("match")
   const [searchQuery, setSearchQuery] = useState("")
+  const [messages, setMessages] = useState([
+    { id: 1, sender: "Luna", text: "Hey! Your AI seems really thoughtful", time: "2:30 PM" },
+    { id: 2, sender: "You", text: "Thanks! I love how creative yours is. Want to grab coffee sometime?", time: "2:32 PM" },
+    { id: 3, sender: "Luna", text: "I'd love that", time: "2:33 PM" }
+  ])
+  const [newMessage, setNewMessage] = useState("")
+
+  // Check URL for tab parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const tab = urlParams.get('tab')
+    if (tab) {
+      setActiveTab(tab)
+    }
+  }, [])
+
+  const sendMessage = () => {
+    if (newMessage.trim()) {
+      setMessages([...messages, {
+        id: messages.length + 1,
+        sender: "You",
+        text: newMessage,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }])
+      setNewMessage("")
+    }
+  }
 
   const sidebarItems = [
     { id: "match", label: "Match Soulz", icon: "💕" },
@@ -118,8 +145,52 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           )}
 
           {activeTab === "chats" && (
-            <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-              <p className="text-gray-400 text-center">No active chats yet. Start by matching with AI souls!</p>
+            <div className="bg-gray-800/50 rounded-xl border border-gray-700 h-[600px] flex flex-col">
+              <div className="p-4 border-b border-gray-700 flex items-center gap-3">
+                <div className="text-2xl">🌙</div>
+                <div>
+                  <h3 className="text-white font-semibold">Luna</h3>
+                  <p className="text-cyan-400 text-sm">luna.soulz.eth</p>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-blue-500/10 border-b border-gray-700">
+                <p className="text-blue-300 text-sm">AI Insight: Your AIs found mutual empathy alignment. You both value deep emotional connections.</p>
+              </div>
+              
+              <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                {messages.map((message) => (
+                  <div key={message.id} className={`flex ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-xs px-4 py-2 rounded-lg ${
+                      message.sender === 'You' 
+                        ? 'bg-pink-500 text-white' 
+                        : 'bg-gray-700 text-gray-100'
+                    }`}>
+                      <p className="text-sm">{message.text}</p>
+                      <p className="text-xs opacity-70 mt-1">{message.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="p-4 border-t border-gray-700">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder="Type a message..."
+                    className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-pink-500"
+                  />
+                  <button
+                    onClick={sendMessage}
+                    className="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
