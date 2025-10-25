@@ -10,43 +10,31 @@ import AIConversationVisual from "@/components/ai-conversation-visual"
 import CompatibilityBar from "@/components/compatibility-bar"
 
 export default function AIInteractionPage() {
-  const [isConnecting, setIsConnecting] = useState(true)
   const [isConversing, setIsConversing] = useState(true)
   const [matchFound, setMatchFound] = useState(false)
-  const [compatibility, setCompatibility] = useState({
-    overall: 0,
-    emotional: 0,
-    values: 0,
-    chemistry: 0,
-  })
+  const [compatibility, setCompatibility] = useState(0)
 
   const router = useRouter()
   const { isConnected } = useWallet()
 
   // --- Mock AI Interaction Process ---
   useEffect(() => {
-    // Step 1: simulate connection/analysis delay
-    const timer1 = setTimeout(() => {
-      setCompatibility({
-        overall: 94,
-        emotional: 91,
-        values: 88,
-        chemistry: 96,
+    if (!isConversing) return
+
+    const interval = setInterval(() => {
+      setCompatibility((prev) => {
+        const newValue = prev + Math.random() * 8
+        if (newValue >= 100) {
+          setIsConversing(false)
+          setMatchFound(true)
+          return 100
+        }
+        return newValue
       })
-      setIsConnecting(false)
-    }, 3000)
+    }, 500)
 
-    // Step 2: after some time, conversation ends & match found
-    const timer2 = setTimeout(() => {
-      setIsConversing(false)
-      setMatchFound(true)
-    }, 5000)
-
-    return () => {
-      clearTimeout(timer1)
-      clearTimeout(timer2)
-    }
-  }, [])
+    return () => clearInterval(interval)
+  }, [isConversing])
 
   if (!isConnected) {
     return (
@@ -90,7 +78,7 @@ export default function AIInteractionPage() {
           <AIConversationVisual isActive={isConversing} />
         </motion.div>
 
-        {/* Compatibility bar */}
+        {/* Compatibility bar - fixed */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -143,27 +131,12 @@ export default function AIInteractionPage() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
-                // restart AI conversation process
-                setIsConnecting(true)
                 setIsConversing(true)
                 setMatchFound(false)
-                setCompatibility({ overall: 0, emotional: 0, values: 0, chemistry: 0 })
-
-                // rerun mock process
-                setTimeout(() => {
-                  setCompatibility({
-                    overall: 94,
-                    emotional: 91,
-                    values: 88,
-                    chemistry: 96,
-                  })
-                  setIsConnecting(false)
-                }, 3000)
-
                 setTimeout(() => {
                   setIsConversing(false)
                   setMatchFound(true)
-                }, 5000)
+                }, 3500)
               }}
               className="px-8 py-4 border-2 border-cyan-400 text-cyan-400 font-semibold rounded-full hover:bg-cyan-400/10 transition-all"
             >
