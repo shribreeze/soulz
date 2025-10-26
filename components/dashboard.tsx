@@ -123,7 +123,14 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
         <main className="flex-1 p-6">
           {activeTab === "match" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
+              {[
+                { name: "alex.eth", avatar: "🎨", trait: "Creative Artist" },
+                { name: "sarah.crypto", avatar: "🌟", trait: "Adventurous Spirit" },
+                { name: "mike.web3", avatar: "🎵", trait: "Music Lover" },
+                { name: "emma.defi", avatar: "📚", trait: "Book Enthusiast" },
+                { name: "david.nft", avatar: "🏃", trait: "Fitness Enthusiast" },
+                { name: "luna.cosmos", avatar: "🌙", trait: "Dreamy Philosopher" }
+              ].map((match, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}
@@ -132,10 +139,10 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
                   className="bg-gray-800/50 rounded-xl p-6 border border-gray-700 hover:border-pink-500/50 transition-all duration-300"
                 >
                   <div className="w-20 h-20 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
-                    🤖
+                    {match.avatar}
                   </div>
-                  <h3 className="text-white font-semibold text-center mb-2">AI Soul #{i}</h3>
-                  <p className="text-gray-400 text-sm text-center mb-4">Compatible personality match</p>
+                  <h3 className="text-white font-semibold text-center mb-2">{match.name}</h3>
+                  <p className="text-gray-400 text-sm text-center mb-4">{match.trait}</p>
                   <button className="w-full px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-300">
                     Connect
                   </button>
@@ -195,8 +202,151 @@ export default function Dashboard({ user, onLogout }: DashboardProps) {
           )}
 
           {activeTab === "buddy" && (
-            <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-              <p className="text-gray-400 text-center">Your AI buddy will appear here once you make your first connection.</p>
+            <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700 relative overflow-hidden">
+              {/* Animated background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10" />
+              <div className="absolute top-0 left-1/4 w-32 h-32 bg-cyan-400/20 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute bottom-0 right-1/4 w-32 h-32 bg-purple-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+              
+              <div className="relative z-10 text-center">
+                {/* Luna Avatar with animations */}
+                <motion.div
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 5, -5, 0]
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="w-32 h-32 bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 rounded-full mx-auto mb-6 flex items-center justify-center text-6xl relative"
+                >
+                  🌙
+                  {/* Floating particles */}
+                  <motion.div
+                    animate={{
+                      y: [-10, -20, -10],
+                      opacity: [0.5, 1, 0.5]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      delay: 0.5
+                    }}
+                    className="absolute -top-2 -right-2 text-cyan-400 text-xl"
+                  >
+                    ✨
+                  </motion.div>
+                  <motion.div
+                    animate={{
+                      y: [-5, -15, -5],
+                      opacity: [0.3, 0.8, 0.3]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      delay: 1
+                    }}
+                    className="absolute -bottom-1 -left-3 text-purple-400 text-lg"
+                  >
+                    💫
+                  </motion.div>
+                </motion.div>
+                
+                <motion.h2
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-3xl font-bold text-white mb-2"
+                >
+                  Luna
+                </motion.h2>
+                
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-cyan-400 mb-4"
+                >
+                  luna.soulz.eth
+                </motion.p>
+                
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="space-y-4 mb-8"
+                >
+                  <div className="flex justify-center gap-2">
+                    {["Empathetic", "Creative", "Adventurous"].map((trait, i) => (
+                      <motion.span
+                        key={trait}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.6 + i * 0.1 }}
+                        className="px-3 py-1 bg-pink-500/20 text-pink-300 rounded-full text-sm border border-pink-500/30"
+                      >
+                        {trait}
+                      </motion.span>
+                    ))}
+                  </div>
+                  
+                  <div className="flex justify-center gap-2">
+                    {["Ethereal", "Romantic", "Mysterious"].map((vibe, i) => (
+                      <motion.span
+                        key={vibe}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.9 + i * 0.1 }}
+                        className="px-3 py-1 bg-cyan-500/20 text-cyan-300 rounded-full text-sm border border-cyan-500/30"
+                      >
+                        {vibe}
+                      </motion.span>
+                    ))}
+                  </div>
+                </motion.div>
+                
+                {/* Compatibility stats */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2 }}
+                  className="grid grid-cols-2 gap-4 mb-6"
+                >
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <div className="text-2xl font-bold text-green-400">94%</div>
+                    <div className="text-gray-400 text-sm">Compatibility</div>
+                  </div>
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <div className="text-2xl font-bold text-blue-400">96%</div>
+                    <div className="text-gray-400 text-sm">Chemistry</div>
+                  </div>
+                </motion.div>
+                
+                {/* Action buttons */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.4 }}
+                  className="flex gap-3 justify-center"
+                >
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setActiveTab("chats")}
+                    className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all"
+                  >
+                    Chat with Luna
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="px-6 py-3 border border-cyan-400 text-cyan-400 rounded-lg hover:bg-cyan-400/10 transition-all"
+                  >
+                    View Insights
+                  </motion.button>
+                </motion.div>
+              </div>
             </div>
           )}
 

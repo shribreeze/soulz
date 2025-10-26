@@ -53,7 +53,7 @@ Our platform integrates directly with the **ASI Alliance** to provide:
 
 ### **2. Web3 Identity System**
 - **Hedera Testnet Integration**: Secure wallet-based authentication
-- **ENS-Style Domains**: Claim unique `.soulz.eth` identities
+- **ENS-Style Domains**: Claim unique `<username>.soulz.eth` identities
 - **On-Chain Verification**: Blockchain-verified authentic profiles
 - **Zero Fake Profiles**: Wallet addresses ensure real humans
 
