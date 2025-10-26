@@ -7,6 +7,7 @@ import Dashboard from "@/components/dashboard"
 import LoadingScreen from "@/components/loading-screen"
 import { useWallet } from "@/hooks/use-wallet"
 import { useUser } from "@/hooks/use-user"
+import Image from "next/image"
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<'landing' | 'loading' | 'hero' | 'dashboard'>('landing')
@@ -66,7 +67,7 @@ export default function Home() {
       <header className="relative z-50 px-6 py-6 backdrop-blur-md bg-black/20 border-b border-white/10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-2 cursor-pointer">
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full shadow-lg shadow-pink-500/40" />
+            <Image src="/soulzLogo.png" alt="Soulz Logo" width={48} height={48} />
             <span className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
               Soulz
             </span>
@@ -232,7 +233,7 @@ export default function Home() {
       <footer className="relative z-10 px-6 py-12 bg-black/50 border-t border-white/10">
         <div className="max-w-6xl mx-auto text-center md:text-left flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full" />
+            <Image src="/soulzLogo.png" alt="Soulz Logo" width={48} height={48} />
             <span className="text-2xl font-bold text-white">Soulz</span>
           </div>
           <div className="flex gap-6 text-gray-400 text-sm">
