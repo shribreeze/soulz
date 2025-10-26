@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
 
 export interface User {
   id: string
@@ -22,25 +21,19 @@ export function useUser() {
   const checkUserExists = async (walletAddress: string): Promise<boolean> => {
     setIsLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('wallet_address', walletAddress.toLowerCase())
-        .maybeSingle()
+      const result = await fetch(`/api/user/${walletAddress}`)
+      const data = await result.json()
 
-      if (error) {
-        console.warn('Database table not ready, treating as new user')
-        return false
-      }
-
-      if (data) {
+      if (result.ok) {
         setUser(data as User)
         return true
       }
-      
+
       return false
     } catch (error) {
       console.warn('Database not ready, treating as new user')
+      return false
+      console.warn('Database table not ready, treating as new user')
       return false
     } finally {
       setIsLoading(false)
@@ -51,44 +44,19 @@ export function useUser() {
     if (!walletAddress) {
       throw new Error('Wallet address is required')
     }
-    
+
     setIsLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .insert({
-          wallet_address: walletAddress.toLowerCase(),
-          name: userData.name,
-          age: userData.age,
-          bio: userData.bio,
-          verified: true,
-          relationships_count: 0,
-          previous_dates: 0
-        })
-        .select()
-        .single()
+      const result = await fetch(`/api/user/${walletAddress}`)
+      const data = await result.json()
 
-      if (error) {
-        console.warn('Database not ready, creating mock user')
-        // Create mock user for demo
-        const mockUser: User = {
-          id: 'mock-' + Date.now(),
-          wallet_address: walletAddress.toLowerCase(),
-          name: userData.name || 'Demo User',
-          age: userData.age,
-          bio: userData.bio,
-          verified: true,
-          created_at: new Date().toISOString(),
-          relationships_count: 0,
-          previous_dates: 0
-        }
-        setUser(mockUser)
-        return mockUser
+      if (result.ok) {
+        setUser(data as User)
+        return data as User
       }
-      
-      const newUser = data as User
-      setUser(newUser)
-      return newUser
+
+      throw new Error('Failed to create user')
+
     } catch (error) {
       console.warn('Database not ready, creating mock user')
       // Create mock user for demo
